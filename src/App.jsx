@@ -5,7 +5,7 @@ import { HomeScreen } from './screens/HomeScreen.jsx'
 import { CalendarScreen } from './screens/CalendarScreen.jsx'
 import { DiscoverScreen } from './screens/DiscoverScreen.jsx'
 import { AddPlantFlow } from './screens/AddPlantFlow.jsx'
-import { T } from './tokens.js'
+import { T } from './tokens.jsx'
 
 export default function App() {
   const { plants, wateredMap, addPlant, removePlant, waterPlant, getStatus } = usePlants()

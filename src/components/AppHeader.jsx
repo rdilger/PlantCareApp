@@ -1,4 +1,4 @@
-import { T } from '../tokens.js'
+import { T } from '../tokens.jsx'
 
 export function AppHeader({ title, subtitle, right, left }) {
   return (

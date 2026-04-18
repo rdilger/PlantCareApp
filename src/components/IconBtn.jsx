@@ -1,4 +1,4 @@
-import { T, Icon } from '../tokens.js'
+import { T, Icon } from '../tokens.jsx'
 
 export function IconBtn({ icon, onClick, badge }) {
   return (

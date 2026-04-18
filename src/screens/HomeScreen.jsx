@@ -1,4 +1,4 @@
-import { T, Icon, PlantImg } from '../tokens.js'
+import { T, Icon, PlantImg } from '../tokens.jsx'
 import { ScreenShell } from '../components/ScreenShell.jsx'
 import { AppHeader } from '../components/AppHeader.jsx'
 import { IconBtn } from '../components/IconBtn.jsx'

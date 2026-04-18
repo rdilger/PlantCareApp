@@ -1,4 +1,4 @@
-import { T, Icon } from '../tokens.js'
+import { T, Icon } from '../tokens.jsx'
 
 const TABS = [
   { id: 'home',     icon: 'home',     label: 'Pflanzen' },
