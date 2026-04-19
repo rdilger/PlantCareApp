@@ -4,12 +4,10 @@ import { ScreenShell } from '../components/ScreenShell.jsx'
 import { AppHeader } from '../components/AppHeader.jsx'
 import { IconBtn } from '../components/IconBtn.jsx'
 import { SectionHeader } from '../components/SectionHeader.jsx'
-
-const GERMAN_MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
-const GERMAN_DAYS_SHORT = ['Mo','Di','Mi','Do','Fr','Sa','So']
+import { useLocale } from '../i18n/LocaleContext.jsx'
 
 const TYPE_CFG = {
-  water: { icon: 'droplet', color: '#1D9E75', bg: '#E8F5EF', label: 'Gießen' },
+  water: { icon: 'droplet', color: '#1D9E75', bg: '#E8F5EF' },
 }
 
 function getNextWaterDates(plant, wateredMap, year, month) {
@@ -19,19 +17,13 @@ function getNextWaterDates(plant, wateredMap, year, month) {
   base.setHours(0, 0, 0, 0)
 
   const dates = []
-  // Walk forward from last watered, collecting all watering dates in this month
   let d = new Date(base)
   d.setDate(d.getDate() + plant.frequency)
 
-  // Go back to find the first occurrence at or before month start
   const monthStart = new Date(year, month, 1)
-  while (d > monthStart) {
-    d.setDate(d.getDate() - plant.frequency)
-  }
-  // Now advance forward collecting dates in the month
-  while (d < monthStart) {
-    d.setDate(d.getDate() + plant.frequency)
-  }
+  while (d > monthStart) d.setDate(d.getDate() - plant.frequency)
+  while (d < monthStart) d.setDate(d.getDate() + plant.frequency)
+
   const monthEnd = new Date(year, month + 1, 0)
   while (d <= monthEnd) {
     dates.push(d.getDate())
@@ -42,26 +34,27 @@ function getNextWaterDates(plant, wateredMap, year, month) {
 }
 
 export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
+  const { t, monthName, dayShort } = useLocale()
   const now = new Date()
-  const [viewYear, setViewYear] = useState(now.getFullYear())
+  const [viewYear, setViewYear]   = useState(now.getFullYear())
   const [viewMonth, setViewMonth] = useState(now.getMonth())
-  const [selected, setSelected] = useState(now.getDate())
+  const [selected, setSelected]   = useState(now.getDate())
   const [wateredToday, setWateredToday] = useState(new Set())
 
   const today = now.getDate()
   const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth()
 
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
-  // Day of week for 1st: 0=Sun → convert to Mon-based (0=Mon)
-  const rawFirst = new Date(viewYear, viewMonth, 1).getDay()
-  const firstOffset = (rawFirst + 6) % 7 // Mon-based offset
+  const rawFirst    = new Date(viewYear, viewMonth, 1).getDay()
+  const firstOffset = (rawFirst + 6) % 7
 
-  // Compute task map: { day: [{ plant, type }] }
+  // Mon–Sun short names via Intl
+  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => dayShort(i)), [dayShort])
+
   const tasksByDay = useMemo(() => {
     const map = {}
     plants.forEach(plant => {
-      const dates = getNextWaterDates(plant, wateredMap, viewYear, viewMonth)
-      dates.forEach(d => {
+      getNextWaterDates(plant, wateredMap, viewYear, viewMonth).forEach(d => {
         if (!map[d]) map[d] = []
         map[d].push({ plant, type: 'water' })
       })
@@ -82,7 +75,6 @@ export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
 
   const selectedTasks = tasksByDay[selected] || []
 
-  // Build week preview: next 5 days with tasks
   const upcomingDays = useMemo(() => {
     const today = new Date()
     const days = []
@@ -92,23 +84,27 @@ export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
       if (d.getMonth() === viewMonth && d.getFullYear() === viewYear) {
         const dayNum = d.getDate()
         if (tasksByDay[dayNum] && dayNum !== selected) {
-          days.push({ date: dayNum, day: GERMAN_DAYS_SHORT[(d.getDay() + 6) % 7], tasks: tasksByDay[dayNum] })
+          days.push({ date: dayNum, day: dayShort((d.getDay() + 6) % 7), tasks: tasksByDay[dayNum] })
         }
       }
     }
     return days.slice(0, 4)
-  }, [tasksByDay, viewMonth, viewYear, selected])
+  }, [tasksByDay, viewMonth, viewYear, selected, dayShort])
 
   const cells = []
   for (let i = 0; i < firstOffset; i++) cells.push(null)
   for (let d = 1; d <= daysInMonth; d++) cells.push(d)
 
+  const taskCountLabel = selectedTasks.length === 1
+    ? t('calendar.tasks.one',  { date: selected, month: monthName(viewMonth) })
+    : t('calendar.tasks.many', { date: selected, month: monthName(viewMonth), count: selectedTasks.length })
+
   return (
     <ScreenShell>
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 120 }}>
         <AppHeader
-          title="Kalender"
-          subtitle="Pflegetermine"
+          title={t('calendar.title')}
+          subtitle={t('calendar.subtitle')}
           right={<IconBtn icon="plus" />}
         />
 
@@ -124,7 +120,7 @@ export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
               <Icon name="chevronLeft" size={20} color={T.ink2} />
             </button>
             <div style={{ fontSize: 17, fontWeight: 650, color: T.ink, letterSpacing: -0.3 }}>
-              {GERMAN_MONTHS[viewMonth]} {viewYear}
+              {monthName(viewMonth)} {viewYear}
             </div>
             <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
               <Icon name="chevronRight" size={20} color={T.ink2} />
@@ -133,7 +129,7 @@ export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
 
           {/* Weekday labels */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 6 }}>
-            {GERMAN_DAYS_SHORT.map((w, i) => (
+            {weekDays.map((w, i) => (
               <div key={i} style={{
                 textAlign: 'center', fontSize: 11, fontWeight: 600,
                 color: T.ink3, letterSpacing: 0.4,
@@ -170,10 +166,10 @@ export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
                         position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)',
                         display: 'flex', gap: 2,
                       }}>
-                        {dayTasks.slice(0, 3).map((t, ti) => (
+                        {dayTasks.slice(0, 3).map((task, ti) => (
                           <span key={ti} style={{
                             width: 4, height: 4, borderRadius: 999,
-                            background: isSelected ? 'rgba(255,255,255,0.9)' : TYPE_CFG[t.type].color,
+                            background: isSelected ? 'rgba(255,255,255,0.9)' : TYPE_CFG[task.type].color,
                           }} />
                         ))}
                       </div>
@@ -187,9 +183,7 @@ export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
 
         {/* Selected day tasks */}
         <div style={{ padding: '8px 20px 0' }}>
-          <SectionHeader
-            title={`${selected}. ${GERMAN_MONTHS[viewMonth]} · ${selectedTasks.length} ${selectedTasks.length === 1 ? 'Aufgabe' : 'Aufgaben'}`}
-          />
+          <SectionHeader title={taskCountLabel} />
           {selectedTasks.length === 0 ? (
             <div style={{
               padding: '32px 20px', textAlign: 'center',
@@ -198,7 +192,7 @@ export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
               color: T.ink3, fontSize: 14,
             }}>
               <Icon name="leaf" size={28} color={T.ink3} strokeWidth={1.5} />
-              <div style={{ marginTop: 8 }}>Keine Termine an diesem Tag</div>
+              <div style={{ marginTop: 8 }}>{t('calendar.noTasks')}</div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -229,20 +223,20 @@ export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
                         <span style={{ fontSize: 12, color: cfg.color, fontWeight: 600, letterSpacing: -0.1 }}>
-                          {cfg.label.toUpperCase()}
+                          {t('calendar.taskType.water').toUpperCase()}
                         </span>
                         {overdue && (
                           <span style={{
                             fontSize: 10, color: T.danger, fontWeight: 600,
                             padding: '2px 6px', borderRadius: 4, background: '#FDECEC',
-                          }}>ÜBERFÄLLIG</span>
+                          }}>{t('calendar.overdue')}</span>
                         )}
                       </div>
                       <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, letterSpacing: -0.3 }}>
                         {task.plant.name}
                       </div>
                       <div style={{ fontSize: 12, color: T.ink3, marginTop: 2 }}>
-                        {task.plant.room} · alle {task.plant.frequency} Tage
+                        {task.plant.room}
                       </div>
                     </div>
                     <button
@@ -269,7 +263,7 @@ export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
         {/* Upcoming week preview */}
         {upcomingDays.length > 0 && (
           <div style={{ padding: '0 20px' }}>
-            <SectionHeader title="Demnächst" action="Alle anzeigen" />
+            <SectionHeader title={t('calendar.upcoming')} action={t('calendar.showAll')} />
             <div style={{ display: 'flex', gap: 10, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 4 }}>
               {upcomingDays.map(day => (
                 <div key={day.date} onClick={() => setSelected(day.date)} style={{
@@ -283,11 +277,11 @@ export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
                     {day.date}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    {day.tasks.slice(0, 2).map((t, i) => (
+                    {day.tasks.slice(0, 2).map((task, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: 999, background: TYPE_CFG[t.type].color }} />
+                        <span style={{ width: 6, height: 6, borderRadius: 999, background: TYPE_CFG[task.type].color }} />
                         <span style={{ fontSize: 11, color: T.ink2, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {t.plant.name}
+                          {task.plant.name}
                         </span>
                       </div>
                     ))}

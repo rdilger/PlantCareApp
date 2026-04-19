@@ -1,24 +1,22 @@
+import { useState } from 'react'
 import { T, Icon, PlantImg } from '../tokens.jsx'
 import { ScreenShell } from '../components/ScreenShell.jsx'
 import { AppHeader } from '../components/AppHeader.jsx'
 import { IconBtn } from '../components/IconBtn.jsx'
 import { WaterStatus } from '../components/WaterStatus.jsx'
 import { SectionHeader } from '../components/SectionHeader.jsx'
-import { useState } from 'react'
-
-function germanDate() {
-  return new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })
-}
+import { useLocale } from '../i18n/LocaleContext.jsx'
 
 export function HomeScreen({ plants, getStatus, onWater, onAddPlant, onOpenPlant }) {
+  const { t, formatDate } = useLocale()
   const [filter, setFilter] = useState('all')
 
   const statuses = plants.map(p => ({ ...p, s: getStatus(p) }))
 
   const filters = [
-    { id: 'all',  label: 'Alle',         count: plants.length },
-    { id: 'due',  label: 'Heute',        count: statuses.filter(p => p.s.status === 'due' || p.s.status === 'overdue').length },
-    { id: 'soon', label: 'Diese Woche',  count: statuses.filter(p => p.s.waterIn <= 3).length },
+    { id: 'all',  label: t('home.filter.all'),  count: plants.length },
+    { id: 'due',  label: t('home.filter.due'),  count: statuses.filter(p => p.s.status === 'due' || p.s.status === 'overdue').length },
+    { id: 'soon', label: t('home.filter.soon'), count: statuses.filter(p => p.s.waterIn <= 3).length },
   ]
 
   const visible = statuses.filter(p => {
@@ -31,12 +29,14 @@ export function HomeScreen({ plants, getStatus, onWater, onAddPlant, onOpenPlant
   const overdue   = statuses.filter(p => p.s.status === 'overdue').length
   const needWater = dueToday + overdue
 
+  const todayStr = formatDate(new Date().toISOString(), { day: 'numeric', month: 'long', year: 'numeric' })
+
   return (
     <ScreenShell>
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 120 }}>
         <AppHeader
-          subtitle="Willkommen zurück"
-          title="Deine Pflanzen"
+          subtitle={t('home.subtitle')}
+          title={t('home.title')}
           right={<IconBtn icon="bell" badge={needWater > 0} onClick={() => setFilter('due')} />}
         />
 
@@ -55,12 +55,14 @@ export function HomeScreen({ plants, getStatus, onWater, onAddPlant, onOpenPlant
             borderRadius: 999, background: 'rgba(255,255,255,0.08)',
           }} />
           <div style={{ fontSize: 13, opacity: 0.85, fontWeight: 500, marginBottom: 4 }}>
-            {germanDate()}
+            {todayStr}
           </div>
           <div style={{ fontSize: 22, fontWeight: 650, letterSpacing: -0.4, lineHeight: 1.25, marginBottom: 14 }}>
             {needWater === 0
-              ? `Alle ${plants.length} Pflanzen sind versorgt`
-              : `${needWater} ${needWater === 1 ? 'Pflanze braucht' : 'Pflanzen brauchen'} heute Wasser`
+              ? t('home.status.allOk', { count: plants.length })
+              : needWater === 1
+                ? t('home.status.needWater.one', { count: 1 })
+                : t('home.status.needWater.many', { count: needWater })
             }
           </div>
           <div style={{ display: 'flex', gap: 10, position: 'relative' }}>
@@ -72,7 +74,7 @@ export function HomeScreen({ plants, getStatus, onWater, onAddPlant, onOpenPlant
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
                 <Icon name="droplet" size={14} strokeWidth={2.2} />
-                {dueToday} fällig
+                {t('home.badge.due', { count: dueToday })}
               </div>
             )}
             {overdue > 0 && (
@@ -81,7 +83,7 @@ export function HomeScreen({ plants, getStatus, onWater, onAddPlant, onOpenPlant
                 background: 'rgba(255,255,255,0.18)',
                 fontSize: 13, fontWeight: 550,
               }}>
-                {overdue} überfällig
+                {t('home.badge.overdue', { count: overdue })}
               </div>
             )}
             {needWater === 0 && (
@@ -92,7 +94,7 @@ export function HomeScreen({ plants, getStatus, onWater, onAddPlant, onOpenPlant
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
                 <Icon name="check" size={14} strokeWidth={2.4} />
-                Alles erledigt
+                {t('home.badge.allOk')}
               </div>
             )}
           </div>
@@ -136,7 +138,7 @@ export function HomeScreen({ plants, getStatus, onWater, onAddPlant, onOpenPlant
               color: T.ink3,
             }}>
               <Icon name="leaf" size={32} color={T.ink3} strokeWidth={1.5} />
-              <div style={{ marginTop: 10, fontSize: 14 }}>Keine Pflanzen in dieser Kategorie</div>
+              <div style={{ marginTop: 10, fontSize: 14 }}>{t('home.empty')}</div>
             </div>
           ) : visible.map(plant => {
             const { status, waterIn } = plant.s
@@ -197,10 +199,10 @@ export function HomeScreen({ plants, getStatus, onWater, onAddPlant, onOpenPlant
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: T.ink, marginBottom: 2 }}>
-                Frühlingstipp
+                {t('home.tip.title')}
               </div>
               <div style={{ fontSize: 12, color: T.ink3, lineHeight: 1.4 }}>
-                Jetzt ist die beste Zeit zum Umtopfen deiner Monstera.
+                {t('home.tip.body')}
               </div>
             </div>
             <Icon name="chevronRight" size={18} color={T.ink3} />

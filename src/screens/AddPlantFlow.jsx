@@ -2,13 +2,7 @@ import { useState } from 'react'
 import { T, Icon, PlantImg } from '../tokens.jsx'
 import { PrimaryBtn } from '../components/Buttons.jsx'
 import { ROOMS, LIGHTS } from '../data.js'
-
-const STEPS = [
-  { title: 'Pflanzenart wählen',   subtitle: 'Was möchtest du hinzufügen?' },
-  { title: 'Details',              subtitle: 'Gib deiner Pflanze einen Namen' },
-  { title: 'Standort',             subtitle: 'Wo steht deine Pflanze?' },
-  { title: 'Pflegeplan',           subtitle: 'Wir richten deine Erinnerungen ein' },
-]
+import { useLocale } from '../i18n/LocaleContext.jsx'
 
 const SPECIES_SUGGESTIONS = [
   'Monstera Deliciosa', 'Ficus Lyrata', 'Calathea Orbifolia',
@@ -16,10 +10,11 @@ const SPECIES_SUGGESTIONS = [
 ]
 
 function StepType({ data, setData }) {
+  const { t } = useLocale()
   const options = [
-    { id: 'scan',   icon: 'camera',  title: 'Mit Kamera scannen',    desc: 'KI erkennt deine Pflanze' },
-    { id: 'search', icon: 'search',  title: 'Aus Datenbank wählen',  desc: '500+ Pflanzenarten' },
-    { id: 'custom', icon: 'sparkle', title: 'Eigene Pflanze',        desc: 'Manuell anlegen' },
+    { id: 'scan',   icon: 'camera',  titleKey: 'add.type.scan.title',   descKey: 'add.type.scan.desc' },
+    { id: 'search', icon: 'search',  titleKey: 'add.type.search.title', descKey: 'add.type.search.desc' },
+    { id: 'custom', icon: 'sparkle', titleKey: 'add.type.custom.title', descKey: 'add.type.custom.desc' },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -42,9 +37,9 @@ function StepType({ data, setData }) {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: T.ink, letterSpacing: -0.2, marginBottom: 2 }}>
-                {o.title}
+                {t(o.titleKey)}
               </div>
-              <div style={{ fontSize: 13, color: T.ink3 }}>{o.desc}</div>
+              <div style={{ fontSize: 13, color: T.ink3 }}>{t(o.descKey)}</div>
             </div>
             <div style={{
               width: 22, height: 22, borderRadius: 999,
@@ -62,6 +57,7 @@ function StepType({ data, setData }) {
 }
 
 function StepDetails({ data, setData }) {
+  const { t } = useLocale()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Preview */}
@@ -73,10 +69,10 @@ function StepDetails({ data, setData }) {
         <PlantImg letter={(data.name[0] || '?').toUpperCase()} hue={148} size={64} radius={16} />
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 11, color: T.greenDark, fontWeight: 600, letterSpacing: 0.3, marginBottom: 3 }}>
-            VORSCHAU
+            PREVIEW
           </div>
           <div style={{ fontSize: 16, fontWeight: 600, color: T.ink, letterSpacing: -0.3 }}>
-            {data.name || 'Meine neue Pflanze'}
+            {data.name || t('add.preview.name')}
           </div>
         </div>
       </div>
@@ -84,12 +80,11 @@ function StepDetails({ data, setData }) {
       {/* Name */}
       <div>
         <label style={{ fontSize: 13, fontWeight: 600, color: T.ink2, letterSpacing: -0.1, marginBottom: 8, display: 'block' }}>
-          Spitzname deiner Pflanze
+          {t('add.label.name')}
         </label>
         <input
           value={data.name}
           onChange={e => setData(d => ({ ...d, name: e.target.value }))}
-          placeholder="z.B. Monty, Fenster-Monstera…"
           autoFocus
           style={{
             width: '100%', boxSizing: 'border-box',
@@ -104,7 +99,7 @@ function StepDetails({ data, setData }) {
       {/* Species */}
       <div>
         <label style={{ fontSize: 13, fontWeight: 600, color: T.ink2, letterSpacing: -0.1, marginBottom: 8, display: 'block' }}>
-          Art (optional)
+          {t('add.label.species')}
         </label>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {SPECIES_SUGGESTIONS.map(s => {
@@ -126,12 +121,13 @@ function StepDetails({ data, setData }) {
 }
 
 function StepLocation({ data, setData }) {
+  const { t } = useLocale()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Room */}
       <div>
         <label style={{ fontSize: 13, fontWeight: 600, color: T.ink2, letterSpacing: -0.1, marginBottom: 10, display: 'block' }}>
-          Raum
+          {t('detail.label.room')}
         </label>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {ROOMS.map(r => {
@@ -153,7 +149,7 @@ function StepLocation({ data, setData }) {
       {/* Light */}
       <div>
         <label style={{ fontSize: 13, fontWeight: 600, color: T.ink2, letterSpacing: -0.1, marginBottom: 10, display: 'block' }}>
-          Lichtverhältnisse
+          {t('detail.label.light')}
         </label>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {LIGHTS.map(l => {
@@ -197,41 +193,18 @@ function StepLocation({ data, setData }) {
 }
 
 function StepCare({ data, setData }) {
+  const { t } = useLocale()
   const lightLabel = LIGHTS.find(l => l.id === data.light)?.label || '—'
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* AI recommendation */}
-      <div style={{
-        padding: 16, borderRadius: 18,
-        background: `linear-gradient(135deg, ${T.greenPale}, #fff)`,
-        border: `1.5px solid ${T.greenLight}`,
-        display: 'flex', gap: 12,
-      }}>
-        <div style={{
-          width: 36, height: 36, borderRadius: 12,
-          background: T.green, flexShrink: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Icon name="sparkle" size={18} color="#fff" />
-        </div>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: T.greenDark, letterSpacing: -0.1, marginBottom: 3 }}>
-            Empfehlung für deinen Standort
-          </div>
-          <div style={{ fontSize: 12, color: T.ink2, lineHeight: 1.4 }}>
-            Basierend auf Pflanzenart und Lichtverhältnissen schlagen wir einen {data.frequency}-Tage-Rhythmus vor.
-          </div>
-        </div>
-      </div>
-
       {/* Frequency */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
           <label style={{ fontSize: 13, fontWeight: 600, color: T.ink2, letterSpacing: -0.1 }}>
-            Bewässerungsrhythmus
+            {t('add.frequency.label')}
           </label>
           <span style={{ fontSize: 20, fontWeight: 700, color: T.green, letterSpacing: -0.4 }}>
-            {data.frequency} Tage
+            {t('add.frequency.value', { count: data.frequency })}
           </span>
         </div>
         <div style={{ padding: '12px 0' }}>
@@ -240,29 +213,26 @@ function StepCare({ data, setData }) {
             onChange={e => setData(d => ({ ...d, frequency: Number(e.target.value) }))}
             style={{ width: '100%', accentColor: T.green }}
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: T.ink3, marginTop: 4 }}>
-            <span>Häufig (2 Tage)</span><span>Selten (21 Tage)</span>
-          </div>
         </div>
       </div>
 
       {/* Reminder time */}
       <div>
         <label style={{ fontSize: 13, fontWeight: 600, color: T.ink2, letterSpacing: -0.1, marginBottom: 10, display: 'block' }}>
-          Erinnerung zu
+          {t('add.reminder.label')}
         </label>
         <div style={{ display: 'flex', gap: 8 }}>
-          {['07:00', '08:00', '12:00', '18:00'].map(t => {
-            const active = data.reminderTime === t
+          {['07:00', '08:00', '12:00', '18:00'].map(time => {
+            const active = data.reminderTime === time
             return (
-              <button key={t} onClick={() => setData(d => ({ ...d, reminderTime: t }))} style={{
+              <button key={time} onClick={() => setData(d => ({ ...d, reminderTime: time }))} style={{
                 flex: 1, padding: '14px 0', borderRadius: 14,
                 background: active ? T.ink : '#fff',
                 color: active ? '#fff' : T.ink2,
                 border: active ? 'none' : `1px solid ${T.line}`,
                 fontSize: 14, fontWeight: 600, letterSpacing: -0.2,
                 cursor: 'pointer', fontFamily: 'inherit',
-              }}>{t}</button>
+              }}>{time}</button>
             )
           })}
         </div>
@@ -273,22 +243,15 @@ function StepCare({ data, setData }) {
         padding: 14, borderRadius: 16,
         background: T.bg, border: `0.5px solid ${T.line}`,
       }}>
-        <div style={{ fontSize: 11, color: T.ink3, fontWeight: 600, letterSpacing: 0.3, marginBottom: 8 }}>
-          ZUSAMMENFASSUNG
-        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', rowGap: 6, columnGap: 12, fontSize: 13 }}>
-          <span style={{ color: T.ink3 }}>Name</span>
+          <span style={{ color: T.ink3 }}>{t('add.summary.name')}</span>
           <span style={{ color: T.ink, fontWeight: 550 }}>{data.name || '—'}</span>
-          <span style={{ color: T.ink3 }}>Art</span>
-          <span style={{ color: T.ink, fontWeight: 550 }}>{data.species || '—'}</span>
-          <span style={{ color: T.ink3 }}>Raum</span>
+          <span style={{ color: T.ink3 }}>{t('add.summary.room')}</span>
           <span style={{ color: T.ink, fontWeight: 550 }}>{data.room || '—'}</span>
-          <span style={{ color: T.ink3 }}>Licht</span>
-          <span style={{ color: T.ink, fontWeight: 550 }}>{lightLabel}</span>
-          <span style={{ color: T.ink3 }}>Gießen</span>
-          <span style={{ color: T.ink, fontWeight: 550 }}>
-            Alle {data.frequency} Tage um {data.reminderTime}
-          </span>
+          <span style={{ color: T.ink3 }}>{t('add.summary.frequency')}</span>
+          <span style={{ color: T.ink, fontWeight: 550 }}>{t('add.summary.frequencyVal', { count: data.frequency })}</span>
+          <span style={{ color: T.ink3 }}>{t('add.summary.reminder')}</span>
+          <span style={{ color: T.ink, fontWeight: 550 }}>{t('add.summary.reminderVal', { time: data.reminderTime })}</span>
         </div>
       </div>
     </div>
@@ -296,6 +259,7 @@ function StepCare({ data, setData }) {
 }
 
 export function AddPlantFlow({ onComplete, onCancel, initialSpecies = null }) {
+  const { t } = useLocale()
   const [step, setStep] = useState(0)
   const [data, setData] = useState({
     type: initialSpecies ? 'search' : null,
@@ -314,15 +278,13 @@ export function AddPlantFlow({ onComplete, onCancel, initialSpecies = null }) {
     true,
   ][step]
 
-  const next = () => {
-    if (step < 3) setStep(step + 1)
-    else onComplete(data)
-  }
+  const next = () => { if (step < 3) setStep(step + 1); else onComplete(data) }
+  const prev = () => { if (step === 0) onCancel(); else setStep(step - 1) }
 
-  const prev = () => {
-    if (step === 0) onCancel()
-    else setStep(step - 1)
-  }
+  const stepTitles = [0, 1, 2, 3].map(i => ({
+    title: t(`add.steps.${i}.title`),
+    subtitle: t(`add.steps.${i}.subtitle`),
+  }))
 
   return (
     <div style={{
@@ -356,7 +318,7 @@ export function AddPlantFlow({ onComplete, onCancel, initialSpecies = null }) {
             <Icon name={step === 0 ? 'close' : 'chevronLeft'} size={20} color={T.ink2} />
           </button>
           <div style={{ fontSize: 13, fontWeight: 600, color: T.ink3, letterSpacing: -0.1 }}>
-            Schritt {step + 1} von 4
+            {t('add.step', { step: step + 1 })}
           </div>
           <div style={{ width: 40 }} />
         </div>
@@ -374,17 +336,15 @@ export function AddPlantFlow({ onComplete, onCancel, initialSpecies = null }) {
 
         {/* Scrollable content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px' }}>
-          {/* Title */}
           <div style={{ marginBottom: 28 }}>
             <div style={{ fontSize: 26, fontWeight: 700, color: T.ink, letterSpacing: -0.6, lineHeight: 1.15, marginBottom: 6 }}>
-              {STEPS[step].title}
+              {stepTitles[step].title}
             </div>
             <div style={{ fontSize: 14, color: T.ink3, letterSpacing: -0.1 }}>
-              {STEPS[step].subtitle}
+              {stepTitles[step].subtitle}
             </div>
           </div>
 
-          {/* Step content */}
           {step === 0 && <StepType data={data} setData={setData} />}
           {step === 1 && <StepDetails data={data} setData={setData} />}
           {step === 2 && <StepLocation data={data} setData={setData} />}
@@ -400,7 +360,7 @@ export function AddPlantFlow({ onComplete, onCancel, initialSpecies = null }) {
           background: 'linear-gradient(to top, #fff 70%, rgba(255,255,255,0))',
         }}>
           <PrimaryBtn onClick={next} disabled={!canNext}>
-            {step === 3 ? 'Pflanze hinzufügen' : 'Weiter'}
+            {step === 3 ? t('add.finish') : t('add.next')}
             {step < 3 && <Icon name="arrowRight" size={18} color="#fff" strokeWidth={2.2} />}
           </PrimaryBtn>
         </div>

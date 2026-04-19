@@ -1,19 +1,47 @@
 import { useState } from 'react'
 import { T } from '../tokens.jsx'
+import { useLocale } from '../i18n/LocaleContext.jsx'
 
 export function ProfileScreen({ plants, onRemovePlant }) {
+  const { t, locale, setLocale } = useLocale()
   const [confirmId, setConfirmId] = useState(null)
 
   return (
     <div style={{ height: '100%', background: T.bg, overflowY: 'auto', paddingBottom: 120 }}>
       <div style={{ padding: '56px 20px 12px' }}>
-        <div style={{ fontSize: 13, color: T.ink3, fontWeight: 500, marginBottom: 2 }}>Einstellungen</div>
-        <div style={{ fontSize: 28, fontWeight: 700, color: T.ink, letterSpacing: -0.8 }}>Profil</div>
+        <div style={{ fontSize: 13, color: T.ink3, fontWeight: 500, marginBottom: 2 }}>{t('profile.subtitle')}</div>
+        <div style={{ fontSize: 28, fontWeight: 700, color: T.ink, letterSpacing: -0.8 }}>{t('profile.title')}</div>
       </div>
 
-      <div style={{ padding: '8px 20px' }}>
+      {/* Language switcher */}
+      <div style={{ padding: '0 20px 20px' }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: T.ink3, letterSpacing: 0.3, marginBottom: 10 }}>
+          {t('profile.language')}
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {[{ id: 'de', label: t('profile.lang.de') }, { id: 'en', label: t('profile.lang.en') }].map(lang => {
+            const active = locale === lang.id
+            return (
+              <button
+                key={lang.id}
+                onClick={() => setLocale(lang.id)}
+                style={{
+                  padding: '10px 20px', borderRadius: 12,
+                  background: active ? T.green : '#fff',
+                  color: active ? '#fff' : T.ink2,
+                  border: `1px solid ${active ? T.green : T.line}`,
+                  fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >{lang.label}</button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Plant list */}
+      <div style={{ padding: '0 20px' }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: T.ink3, letterSpacing: 0.3, marginBottom: 12 }}>
-          MEINE PFLANZEN ({plants.length})
+          {t('profile.myPlants', { count: plants.length })}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {plants.map(p => (
@@ -31,7 +59,9 @@ export function ProfileScreen({ plants, onRemovePlant }) {
               }}>{p.letter}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, letterSpacing: -0.2 }}>{p.name}</div>
-                <div style={{ fontSize: 12, color: T.ink3 }}>{p.room} · alle {p.frequency} Tage</div>
+                <div style={{ fontSize: 12, color: T.ink3 }}>
+                  {t('profile.plantMeta', { room: p.room, frequency: p.frequency })}
+                </div>
               </div>
               {confirmId === p.id ? (
                 <div style={{ display: 'flex', gap: 6 }}>
@@ -41,14 +71,14 @@ export function ProfileScreen({ plants, onRemovePlant }) {
                       padding: '6px 10px', borderRadius: 8,
                       background: T.danger, color: '#fff', border: 'none',
                       fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-                    }}>Löschen</button>
+                    }}>{t('profile.delete')}</button>
                   <button
                     onClick={() => setConfirmId(null)}
                     style={{
                       padding: '6px 10px', borderRadius: 8,
                       background: T.line, color: T.ink2, border: 'none',
                       fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-                    }}>Abbrechen</button>
+                    }}>{t('profile.cancel')}</button>
                 </div>
               ) : (
                 <button

@@ -4,13 +4,7 @@ import { ScreenShell } from '../components/ScreenShell.jsx'
 import { AppHeader } from '../components/AppHeader.jsx'
 import { SectionHeader } from '../components/SectionHeader.jsx'
 import { DISCOVER, CATEGORIES } from '../data.js'
-
-const DIFF_COLOR = {
-  'Sehr leicht': T.green,
-  'Leicht': T.green,
-  'Mittel': '#B57317',
-  'Schwer': T.danger,
-}
+import { useLocale } from '../i18n/LocaleContext.jsx'
 
 function loadFavs() {
   try { return new Set(JSON.parse(localStorage.getItem('plantcare_favs') || '[]')) } catch { return new Set() }
@@ -20,6 +14,7 @@ function saveFavs(set) {
 }
 
 export function DiscoverScreen({ onAddFromDiscover }) {
+  const { t } = useLocale()
   const [cat, setCat] = useState('all')
   const [query, setQuery] = useState('')
   const [favs, setFavs] = useState(() => loadFavs())
@@ -42,12 +37,24 @@ export function DiscoverScreen({ onAddFromDiscover }) {
   })
 
   const featured = DISCOVER[0]
-  const trending = DISCOVER.slice(1, 4)
+  const trending  = DISCOVER.slice(1, 4)
+
+  const favsLabel = favs.size > 0
+    ? t('discover.favsCount', { count: favs.size })
+    : t('discover.favs')
+
+  const allCategories = [{ id: 'favs', label: favsLabel }, ...CATEGORIES]
+
+  const resultsLabel = cat === 'all' && !query
+    ? t('discover.allPlants')
+    : filtered.length === 1
+      ? t('discover.results.one')
+      : t('discover.results.many', { count: filtered.length })
 
   return (
     <ScreenShell>
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 120 }}>
-        <AppHeader title="Entdecken" subtitle="Finde deine nächste Pflanze" />
+        <AppHeader title={t('discover.title')} subtitle={t('discover.subtitle')} />
 
         {/* Search */}
         <div style={{ padding: '4px 20px 0' }}>
@@ -60,7 +67,7 @@ export function DiscoverScreen({ onAddFromDiscover }) {
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Pflanzen, Eigenschaften…"
+              placeholder={t('discover.search')}
               style={{
                 flex: 1, border: 'none', outline: 'none', background: 'transparent',
                 fontSize: 15, color: T.ink, fontFamily: 'inherit', letterSpacing: -0.2,
@@ -89,7 +96,7 @@ export function DiscoverScreen({ onAddFromDiscover }) {
           display: 'flex', gap: 8, padding: '16px 20px 4px',
           overflowX: 'auto', scrollbarWidth: 'none',
         }}>
-          {[{ id: 'favs', label: `♥ Favoriten${favs.size > 0 ? ` (${favs.size})` : ''}` }, ...CATEGORIES].map(c => {
+          {allCategories.map(c => {
             const active = cat === c.id
             return (
               <button key={c.id} onClick={() => setCat(c.id)} style={{
@@ -105,10 +112,9 @@ export function DiscoverScreen({ onAddFromDiscover }) {
           })}
         </div>
 
-        {/* Featured + Trending (only when no search/filter active) */}
+        {/* Featured + Trending */}
         {cat === 'all' && !query && (
           <>
-            {/* Featured hero */}
             <div style={{ padding: '16px 20px 0' }}>
               <div style={{
                 borderRadius: 24, overflow: 'hidden',
@@ -123,13 +129,13 @@ export function DiscoverScreen({ onAddFromDiscover }) {
                       background: '#fff', color: T.greenDark,
                       fontSize: 11, fontWeight: 650, letterSpacing: 0.4, marginBottom: 10,
                     }}>
-                      PFLANZE DER WOCHE
+                      {t('discover.featured')}
                     </div>
                     <div style={{ fontSize: 22, fontWeight: 700, color: T.ink, letterSpacing: -0.5, marginBottom: 4 }}>
                       {featured.name}
                     </div>
                     <div style={{ fontSize: 13, color: T.ink2, lineHeight: 1.45, marginBottom: 14 }}>
-                      Beliebt, pflegeleicht und reinigt die Luft.
+                      {t('discover.featuredDesc')}
                     </div>
                     <button
                       onClick={() => onAddFromDiscover?.(featured)}
@@ -141,7 +147,7 @@ export function DiscoverScreen({ onAddFromDiscover }) {
                         fontFamily: 'inherit',
                         display: 'inline-flex', alignItems: 'center', gap: 6,
                       }}>
-                      Hinzufügen
+                      {t('discover.add')}
                       <Icon name="arrowRight" size={14} color="#fff" strokeWidth={2.2} />
                     </button>
                   </div>
@@ -150,8 +156,7 @@ export function DiscoverScreen({ onAddFromDiscover }) {
               </div>
             </div>
 
-            {/* Trending */}
-            <SectionHeader title="Gerade beliebt" action="Mehr" />
+            <SectionHeader title={t('discover.trending')} action={t('discover.more')} />
             <div style={{
               display: 'flex', gap: 12, padding: '0 20px 8px',
               overflowX: 'auto', scrollbarWidth: 'none',
@@ -179,14 +184,14 @@ export function DiscoverScreen({ onAddFromDiscover }) {
 
         {/* Results grid */}
         <SectionHeader
-          title={cat === 'all' && !query ? 'Alle Pflanzen' : `${filtered.length} Ergebnis${filtered.length !== 1 ? 'se' : ''}`}
-          action={cat !== 'all' ? 'Sortieren' : null}
+          title={resultsLabel}
+          action={cat !== 'all' ? t('discover.sort') : null}
         />
 
         {filtered.length === 0 ? (
           <div style={{ padding: '32px 20px', textAlign: 'center', color: T.ink3 }}>
             <Icon name="search" size={32} color={T.ink3} strokeWidth={1.5} />
-            <div style={{ marginTop: 8, fontSize: 14 }}>Keine Treffer</div>
+            <div style={{ marginTop: 8, fontSize: 14 }}>{t('discover.noResults')}</div>
           </div>
         ) : (
           <div style={{
@@ -223,7 +228,7 @@ export function DiscoverScreen({ onAddFromDiscover }) {
                     <span style={{
                       fontSize: 10, fontWeight: 600,
                       padding: '3px 7px', borderRadius: 6,
-                      background: T.greenPale, color: DIFF_COLOR[p.diff] || T.green,
+                      background: T.greenPale, color: T.green,
                       letterSpacing: -0.1,
                     }}>{p.diff}</span>
                     <span style={{

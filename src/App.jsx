@@ -9,6 +9,7 @@ import { AddPlantFlow } from './screens/AddPlantFlow.jsx'
 import { PlantDetailScreen } from './screens/PlantDetailScreen.jsx'
 import { ProfileScreen } from './screens/ProfileScreen.jsx'
 import { T } from './tokens.jsx'
+import { useLocale } from './i18n/LocaleContext.jsx'
 
 export default function App() {
   const { plants, wateredMap, addPlant, removePlant, waterPlant, updatePlant, addNote, removeNote, getStatus } = usePlants()
@@ -18,6 +19,7 @@ export default function App() {
   const [selectedPlant, setSelectedPlant] = useState(null)
   const [dismissedBanner, setDismissedBanner] = useState(false)
   const { permission, requestPermission } = useNotifications(plants, getStatus)
+  const { t } = useLocale()
 
   const handleTabChange = (id) => {
     if (id === 'add') {
@@ -111,10 +113,10 @@ export default function App() {
         }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 2 }}>
-              Erinnerungen aktivieren?
+              {t('notify.title')}
             </div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)' }}>
-              Wir erinnern dich, wenn deine Pflanzen Wasser brauchen.
+              {t('notify.body')}
             </div>
           </div>
           <button
@@ -124,7 +126,7 @@ export default function App() {
               background: '#fff', color: T.green,
               border: 'none', fontSize: 13, fontWeight: 700,
               cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
-            }}>Ja</button>
+            }}>{t('notify.yes')}</button>
           <button
             onClick={() => setDismissedBanner(true)}
             style={{
@@ -132,7 +134,7 @@ export default function App() {
               background: 'rgba(255,255,255,0.2)', color: '#fff',
               border: 'none', fontSize: 13, fontWeight: 600,
               cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
-            }}>Später</button>
+            }}>{t('notify.later')}</button>
         </div>
       )}
     </div>

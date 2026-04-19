@@ -3,20 +3,10 @@ import { T, Icon, PlantImg } from '../tokens.jsx'
 import { WaterStatus } from '../components/WaterStatus.jsx'
 import { PrimaryBtn } from '../components/Buttons.jsx'
 import { ROOMS, LIGHTS } from '../data.js'
-
-function germanDate(isoDate) {
-  if (!isoDate) return '—'
-  return new Date(isoDate).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })
-}
-
-function addDays(isoDate, days) {
-  if (!isoDate) return '—'
-  const d = new Date(isoDate)
-  d.setDate(d.getDate() + days)
-  return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long' })
-}
+import { useLocale } from '../i18n/LocaleContext.jsx'
 
 export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemove, onClose, onAddNote, onRemoveNote }) {
+  const { t, formatDate } = useLocale()
   const [editing, setEditing] = useState(false)
   const [editData, setEditData] = useState({
     name: plant.name,
@@ -37,9 +27,7 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
     setEditing(false)
   }
 
-  const handleWater = () => {
-    onWater(plant.id)
-  }
+  const handleWater = () => onWater(plant.id)
 
   const handleDelete = () => {
     onRemove(plant.id)
@@ -47,6 +35,17 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
   }
 
   const lightLabel = LIGHTS.find(l => l.id === (editing ? editData.light : plant.light))?.label || '—'
+
+  const fmtDate = (iso) => formatDate(iso, { day: 'numeric', month: 'long', year: 'numeric' })
+  const fmtShort = (iso) => formatDate(iso, { day: 'numeric', month: 'long' })
+
+  const nextWaterLabel = (() => {
+    if (waterIn <= 0) return t('detail.today')
+    if (!lastWatered) return '—'
+    const d = new Date(lastWatered)
+    d.setDate(d.getDate() + plant.frequency)
+    return fmtShort(d.toISOString())
+  })()
 
   return (
     <div style={{
@@ -84,7 +83,7 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
           border: `0.5px solid ${editing ? T.green : T.line}`,
           fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
         }}>
-          {editing ? 'Abbrechen' : 'Bearbeiten'}
+          {editing ? t('detail.cancel') : t('detail.edit')}
         </button>
       </div>
 
@@ -111,43 +110,43 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
         {/* Status card */}
         <div style={{ margin: '0 20px 16px', padding: 16, borderRadius: 20, background: '#fff', border: `0.5px solid ${T.line}` }}>
           <div style={{ fontSize: 11, color: T.ink3, fontWeight: 600, letterSpacing: 0.3, marginBottom: 12 }}>
-            BEWÄSSERUNG
+            {t('detail.section.water')}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
-              <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>Zuletzt gegossen</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{germanDate(lastWatered)}</div>
+              <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>{t('detail.lastWatered')}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{fmtDate(lastWatered)}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>Nächstes Mal</div>
+              <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>{t('detail.nextWatering')}</div>
               <div style={{ fontSize: 14, fontWeight: 600, color: waterIn <= 0 ? T.danger : T.ink }}>
-                {waterIn <= 0 ? 'Heute' : addDays(lastWatered, plant.frequency)}
+                {nextWaterLabel}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>Rhythmus</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>Alle {plant.frequency} Tage</div>
+              <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>{t('detail.frequency')}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{t('detail.frequencyVal', { count: plant.frequency })}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>Erinnerung</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{plant.reminderTime} Uhr</div>
+              <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>{t('detail.reminder')}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{t('detail.reminderVal', { time: plant.reminderTime })}</div>
             </div>
           </div>
         </div>
 
-        {/* Care info (view mode) / Edit form */}
+        {/* Care info / Edit form */}
         {!editing ? (
           <div style={{ margin: '0 20px 16px', padding: 16, borderRadius: 20, background: '#fff', border: `0.5px solid ${T.line}` }}>
             <div style={{ fontSize: 11, color: T.ink3, fontWeight: 600, letterSpacing: 0.3, marginBottom: 12 }}>
-              STANDORT & LICHT
+              {t('detail.section.location')}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
-                <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>Raum</div>
+                <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>{t('detail.room')}</div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{plant.room || '—'}</div>
               </div>
               <div>
-                <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>Licht</div>
+                <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>{t('detail.light')}</div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{lightLabel}</div>
               </div>
             </div>
@@ -155,12 +154,12 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
         ) : (
           <div style={{ margin: '0 20px 16px', padding: 16, borderRadius: 20, background: '#fff', border: `1.5px solid ${T.green}` }}>
             <div style={{ fontSize: 11, color: T.greenDark, fontWeight: 600, letterSpacing: 0.3, marginBottom: 16 }}>
-              BEARBEITEN
+              {t('detail.section.edit')}
             </div>
 
             {/* Name */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: T.ink2, marginBottom: 6, display: 'block' }}>Name</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: T.ink2, marginBottom: 6, display: 'block' }}>{t('detail.label.name')}</label>
               <input
                 value={editData.name}
                 onChange={e => setEditData(d => ({ ...d, name: e.target.value }))}
@@ -175,7 +174,7 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
 
             {/* Room */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: T.ink2, marginBottom: 8, display: 'block' }}>Raum</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: T.ink2, marginBottom: 8, display: 'block' }}>{t('detail.label.room')}</label>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {ROOMS.map(r => {
                   const active = editData.room === r
@@ -194,7 +193,7 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
 
             {/* Light */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: T.ink2, marginBottom: 8, display: 'block' }}>Licht</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: T.ink2, marginBottom: 8, display: 'block' }}>{t('detail.label.light')}</label>
               <div style={{ display: 'flex', gap: 6 }}>
                 {LIGHTS.map(l => {
                   const active = editData.light === l.id
@@ -214,8 +213,8 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
             {/* Frequency */}
             <div style={{ marginBottom: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: T.ink2 }}>Gießrhythmus</label>
-                <span style={{ fontSize: 15, fontWeight: 700, color: T.green }}>Alle {editData.frequency} Tage</span>
+                <label style={{ fontSize: 12, fontWeight: 600, color: T.ink2 }}>{t('detail.label.frequency')}</label>
+                <span style={{ fontSize: 15, fontWeight: 700, color: T.green }}>{t('detail.frequencyEvery', { count: editData.frequency })}</span>
               </div>
               <input
                 type="range" min="2" max="21" value={editData.frequency}
@@ -225,7 +224,7 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
             </div>
 
             <PrimaryBtn onClick={handleSave} disabled={!editData.name.trim()}>
-              Änderungen speichern
+              {t('detail.save')}
             </PrimaryBtn>
           </div>
         )}
@@ -235,9 +234,7 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
           <div style={{ padding: '0 20px 16px' }}>
             <button onClick={handleWater} style={{
               width: '100%', height: 52, borderRadius: 16,
-              background: status === 'overdue' || status === 'due'
-                ? T.green
-                : '#fff',
+              background: status === 'overdue' || status === 'due' ? T.green : '#fff',
               color: status === 'overdue' || status === 'due' ? '#fff' : T.green,
               border: `1.5px solid ${T.green}`,
               fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
@@ -245,16 +242,16 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
               boxShadow: status === 'overdue' || status === 'due' ? `0 4px 12px ${T.green}40` : 'none',
             }}>
               <Icon name="droplet" size={20} color={status === 'overdue' || status === 'due' ? '#fff' : T.green} strokeWidth={2} />
-              Jetzt gießen
+              {t('detail.waterNow')}
             </button>
           </div>
         )}
 
-        {/* Journal / health notes */}
+        {/* Journal */}
         {!editing && (
           <div style={{ margin: '0 20px 16px', padding: 16, borderRadius: 20, background: '#fff', border: `0.5px solid ${T.line}` }}>
             <div style={{ fontSize: 11, color: T.ink3, fontWeight: 600, letterSpacing: 0.3, marginBottom: 12 }}>
-              PFLEGETAGEBUCH
+              {t('detail.section.journal')}
             </div>
             {(plant.notes || []).length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
@@ -265,7 +262,7 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
                   }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>
-                        {germanDate(note.date)}
+                        {fmtDate(note.date)}
                       </div>
                       <div style={{ fontSize: 13, color: T.ink, lineHeight: 1.4 }}>{note.text}</div>
                     </div>
@@ -289,7 +286,7 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
                     setNoteText('')
                   }
                 }}
-                placeholder="Beobachtung hinzufügen…"
+                placeholder={t('detail.journal.placeholder')}
                 style={{
                   flex: 1, padding: '10px 12px', borderRadius: 10,
                   background: T.bg, border: `1px solid ${T.line}`,
@@ -325,22 +322,22 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
                 display: 'flex', flexDirection: 'column', gap: 10,
               }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: T.danger }}>
-                  Pflanze wirklich löschen?
+                  {t('detail.confirmTitle')}
                 </div>
                 <div style={{ fontSize: 13, color: T.ink2 }}>
-                  Diese Aktion kann nicht rückgängig gemacht werden.
+                  {t('detail.confirmBody')}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={handleDelete} style={{
                     flex: 1, height: 44, borderRadius: 12,
                     background: T.danger, color: '#fff', border: 'none',
                     fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-                  }}>Löschen</button>
+                  }}>{t('detail.delete')}</button>
                   <button onClick={() => setConfirmDelete(false)} style={{
                     flex: 1, height: 44, borderRadius: 12,
                     background: '#fff', color: T.ink2, border: `1px solid ${T.line}`,
                     fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-                  }}>Abbrechen</button>
+                  }}>{t('detail.cancel')}</button>
                 </div>
               </div>
             ) : (
@@ -352,7 +349,7 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               }}>
                 <Icon name="trash" size={16} color={T.ink3} />
-                Pflanze entfernen
+                {t('detail.remove')}
               </button>
             )}
           </div>
