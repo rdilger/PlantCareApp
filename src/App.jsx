@@ -56,6 +56,7 @@ export default function App() {
             plants={plants}
             wateredMap={wateredMap}
             getStatus={getStatus}
+            onWater={waterPlant}
           />
         )}
         {activeTab === 'discover' && (

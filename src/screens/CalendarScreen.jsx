@@ -40,11 +40,12 @@ function getNextWaterDates(plant, wateredMap, year, month) {
   return dates
 }
 
-export function CalendarScreen({ plants, wateredMap, getStatus }) {
+export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
   const now = new Date()
   const [viewYear, setViewYear] = useState(now.getFullYear())
   const [viewMonth, setViewMonth] = useState(now.getMonth())
   const [selected, setSelected] = useState(now.getDate())
+  const [wateredToday, setWateredToday] = useState(new Set())
 
   const today = now.getDate()
   const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth()
@@ -242,13 +243,20 @@ export function CalendarScreen({ plants, wateredMap, getStatus }) {
                         {task.plant.room} · alle {task.plant.frequency} Tage
                       </div>
                     </div>
-                    <div style={{
-                      width: 36, height: 36, borderRadius: 12,
-                      background: T.greenPale,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
+                    <button
+                      onClick={() => {
+                        onWater?.(task.plant.id)
+                        setWateredToday(prev => new Set([...prev, task.plant.id]))
+                      }}
+                      style={{
+                        width: 36, height: 36, borderRadius: 12,
+                        background: wateredToday.has(task.plant.id) ? T.greenLight : T.greenPale,
+                        border: 'none', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
+                      }}>
                       <Icon name="check" size={18} color={T.green} strokeWidth={2.4} />
-                    </div>
+                    </button>
                   </div>
                 )
               })}
