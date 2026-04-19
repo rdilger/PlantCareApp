@@ -84,9 +84,10 @@ export function CalendarScreen({ plants, wateredMap, getStatus, onWater }) {
 
   // Build week preview: next 5 days with tasks
   const upcomingDays = useMemo(() => {
+    const today = new Date()
     const days = []
     for (let i = 0; i < 14; i++) {
-      const d = new Date(now)
+      const d = new Date(today)
       d.setDate(d.getDate() + i)
       if (d.getMonth() === viewMonth && d.getFullYear() === viewYear) {
         const dayNum = d.getDate()

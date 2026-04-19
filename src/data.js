@@ -1,17 +1,17 @@
 // Seed plants — shown when localStorage is empty
 export const SEED_PLANTS = [
   { id: '1', name: 'Monstera', species: 'Monstera Deliciosa', room: 'Wohnzimmer', letter: 'M', hue: 150,
-    frequency: 4, light: 'indirect', reminderTime: '08:00', createdAt: new Date().toISOString() },
+    frequency: 4, light: 'indirect', reminderTime: '08:00', createdAt: '2025-11-03T10:00:00Z' },
   { id: '2', name: 'Ficus', species: 'Ficus Lyrata', room: 'Arbeitszimmer', letter: 'F', hue: 145,
-    frequency: 7, light: 'bright', reminderTime: '08:00', createdAt: new Date().toISOString() },
+    frequency: 7, light: 'bright', reminderTime: '08:00', createdAt: '2025-12-18T10:00:00Z' },
   { id: '3', name: 'Sanse', species: 'Sansevieria', room: 'Schlafzimmer', letter: 'S', hue: 135,
-    frequency: 14, light: 'low', reminderTime: '08:00', createdAt: new Date().toISOString() },
+    frequency: 14, light: 'low', reminderTime: '08:00', createdAt: '2025-09-01T10:00:00Z' },
   { id: '4', name: 'Calathea', species: 'Calathea Orbifolia', room: 'Bad', letter: 'C', hue: 160,
-    frequency: 3, light: 'indirect', reminderTime: '08:00', createdAt: new Date().toISOString() },
+    frequency: 3, light: 'indirect', reminderTime: '08:00', createdAt: '2026-01-22T10:00:00Z' },
   { id: '5', name: 'Pilea', species: 'Pilea Peperomioides', room: 'Küche', letter: 'P', hue: 155,
-    frequency: 5, light: 'bright', reminderTime: '08:00', createdAt: new Date().toISOString() },
+    frequency: 5, light: 'bright', reminderTime: '08:00', createdAt: '2026-02-14T10:00:00Z' },
   { id: '6', name: 'Epipremnum', species: 'Epipremnum Aureum', room: 'Flur', letter: 'E', hue: 148,
-    frequency: 7, light: 'indirect', reminderTime: '08:00', createdAt: new Date().toISOString() },
+    frequency: 7, light: 'indirect', reminderTime: '08:00', createdAt: '2026-03-05T10:00:00Z' },
 ]
 
 export const DISCOVER = [
