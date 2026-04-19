@@ -299,7 +299,7 @@ export function AddPlantFlow({ onComplete, onCancel, initialSpecies = null }) {
   const [step, setStep] = useState(0)
   const [data, setData] = useState({
     type: initialSpecies ? 'search' : null,
-    name: '',
+    name: initialSpecies ? initialSpecies.split(' ')[0] : '',
     species: initialSpecies || '',
     room: null,
     light: null,

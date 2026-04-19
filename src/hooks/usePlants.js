@@ -20,7 +20,7 @@ function loadPlants() {
   seeded.forEach((p, i) => {
     const d = new Date(now)
     d.setDate(d.getDate() - (offsets[i] ?? 0))
-    wateredMap[p.id] = d.toISOString()
+    wateredMap[p.id] = [d.toISOString()]
   })
   localStorage.setItem(WATERED_KEY, JSON.stringify(wateredMap))
   return seeded
@@ -29,7 +29,15 @@ function loadPlants() {
 function loadWateredMap() {
   try {
     const raw = localStorage.getItem(WATERED_KEY)
-    if (raw) return JSON.parse(raw)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      // Migrate single-string values to arrays
+      const migrated = {}
+      for (const [id, val] of Object.entries(parsed)) {
+        migrated[id] = Array.isArray(val) ? val : (val ? [val] : [])
+      }
+      return migrated
+    }
   } catch {}
   return {}
 }
@@ -57,7 +65,8 @@ export function usePlants() {
   useEffect(() => { saveWateredMap(wateredMap) }, [wateredMap])
 
   const getStatus = useCallback((plant) => {
-    const last = wateredMap[plant.id]
+    const history = wateredMap[plant.id]
+    const last = Array.isArray(history) ? history[history.length - 1] : history
     const ds = daysSince(last)
     const waterIn = plant.frequency - ds
     let status
@@ -86,7 +95,7 @@ export function usePlants() {
       const hue = PLANT_HUES[prev.length % PLANT_HUES.length]
       return [...prev, { ...plant, hue }]
     })
-    setWateredMap(prev => ({ ...prev, [plant.id]: new Date().toISOString() }))
+    setWateredMap(prev => ({ ...prev, [plant.id]: [new Date().toISOString()] }))
     return plant
   }, [])
 
@@ -100,7 +109,10 @@ export function usePlants() {
   }, [])
 
   const waterPlant = useCallback((id) => {
-    setWateredMap(prev => ({ ...prev, [id]: new Date().toISOString() }))
+    setWateredMap(prev => ({
+      ...prev,
+      [id]: [...(Array.isArray(prev[id]) ? prev[id] : prev[id] ? [prev[id]] : []), new Date().toISOString()],
+    }))
   }, [])
 
   const updatePlant = useCallback((id, changes) => {
@@ -110,5 +122,20 @@ export function usePlants() {
     ))
   }, [])
 
-  return { plants, wateredMap, addPlant, removePlant, waterPlant, updatePlant, getStatus }
+  const addNote = useCallback((plantId, text) => {
+    const note = { id: crypto.randomUUID(), text, date: new Date().toISOString() }
+    setPlants(prev => prev.map(p => p.id === plantId
+      ? { ...p, notes: [...(p.notes || []), note] }
+      : p
+    ))
+  }, [])
+
+  const removeNote = useCallback((plantId, noteId) => {
+    setPlants(prev => prev.map(p => p.id === plantId
+      ? { ...p, notes: (p.notes || []).filter(n => n.id !== noteId) }
+      : p
+    ))
+  }, [])
+
+  return { plants, wateredMap, addPlant, removePlant, waterPlant, updatePlant, addNote, removeNote, getStatus }
 }

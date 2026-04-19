@@ -37,7 +37,7 @@ export function HomeScreen({ plants, getStatus, onWater, onAddPlant, onOpenPlant
         <AppHeader
           subtitle="Willkommen zurück"
           title="Deine Pflanzen"
-          right={<IconBtn icon="bell" badge={needWater > 0} />}
+          right={<IconBtn icon="bell" badge={needWater > 0} onClick={() => setFilter('due')} />}
         />
 
         {/* Status summary card */}

@@ -10,7 +10,7 @@ import { PlantDetailScreen } from './screens/PlantDetailScreen.jsx'
 import { T } from './tokens.jsx'
 
 export default function App() {
-  const { plants, wateredMap, addPlant, removePlant, waterPlant, updatePlant, getStatus } = usePlants()
+  const { plants, wateredMap, addPlant, removePlant, waterPlant, updatePlant, addNote, removeNote, getStatus } = usePlants()
   const [activeTab, setActiveTab] = useState('home')
   const [showAdd, setShowAdd] = useState(false)
   const [addInitialSpecies, setAddInitialSpecies] = useState(null)
@@ -95,6 +95,8 @@ export default function App() {
           onUpdate={updatePlant}
           onRemove={removePlant}
           onClose={() => setSelectedPlant(null)}
+          onAddNote={addNote}
+          onRemoveNote={removeNote}
         />
       )}
 

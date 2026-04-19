@@ -13,7 +13,8 @@ const TYPE_CFG = {
 }
 
 function getNextWaterDates(plant, wateredMap, year, month) {
-  const lastWateredStr = wateredMap[plant.id]
+  const history = wateredMap[plant.id]
+  const lastWateredStr = Array.isArray(history) ? history[history.length - 1] : history
   const base = lastWateredStr ? new Date(lastWateredStr) : new Date()
   base.setHours(0, 0, 0, 0)
 

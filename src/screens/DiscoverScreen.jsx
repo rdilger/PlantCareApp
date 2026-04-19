@@ -12,11 +12,30 @@ const DIFF_COLOR = {
   'Schwer': T.danger,
 }
 
+function loadFavs() {
+  try { return new Set(JSON.parse(localStorage.getItem('plantcare_favs') || '[]')) } catch { return new Set() }
+}
+function saveFavs(set) {
+  localStorage.setItem('plantcare_favs', JSON.stringify([...set]))
+}
+
 export function DiscoverScreen({ onAddFromDiscover }) {
   const [cat, setCat] = useState('all')
   const [query, setQuery] = useState('')
+  const [favs, setFavs] = useState(() => loadFavs())
+
+  const toggleFav = (e, plantName) => {
+    e.stopPropagation()
+    setFavs(prev => {
+      const next = new Set(prev)
+      next.has(plantName) ? next.delete(plantName) : next.add(plantName)
+      saveFavs(next)
+      return next
+    })
+  }
 
   const filtered = DISCOVER.filter(p => {
+    if (cat === 'favs') return favs.has(p.name)
     if (cat !== 'all' && !p.cats.includes(cat)) return false
     if (query && !p.name.toLowerCase().includes(query.toLowerCase())) return false
     return true
@@ -70,7 +89,7 @@ export function DiscoverScreen({ onAddFromDiscover }) {
           display: 'flex', gap: 8, padding: '16px 20px 4px',
           overflowX: 'auto', scrollbarWidth: 'none',
         }}>
-          {CATEGORIES.map(c => {
+          {[{ id: 'favs', label: `♥ Favoriten${favs.size > 0 ? ` (${favs.size})` : ''}` }, ...CATEGORIES].map(c => {
             const active = cat === c.id
             return (
               <button key={c.id} onClick={() => setCat(c.id)} style={{
@@ -182,15 +201,15 @@ export function DiscoverScreen({ onAddFromDiscover }) {
                 cursor: 'pointer', position: 'relative',
               }}>
                 <button
-                  onClick={e => e.stopPropagation()}
+                  onClick={e => toggleFav(e, p.name)}
                   style={{
                     position: 'absolute', top: 18, right: 18, zIndex: 2,
                     width: 28, height: 28, borderRadius: 999,
-                    background: 'rgba(255,255,255,0.9)',
+                    background: favs.has(p.name) ? '#FDECEC' : 'rgba(255,255,255,0.9)',
                     border: 'none', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
-                  <Icon name="heart" size={14} color={T.ink2} />
+                  <Icon name="heart" size={14} color={favs.has(p.name) ? T.danger : T.ink2} />
                 </button>
                 <PlantImg letter={p.letter} hue={p.hue} size={130} radius={14} style={{ width: '100%' }} />
                 <div style={{ padding: '10px 4px 4px' }}>

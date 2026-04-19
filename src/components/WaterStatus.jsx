@@ -5,7 +5,7 @@ export function WaterStatus({ status, days }) {
     overdue: { bg: '#FDECEC', fg: T.danger,   label: 'Überfällig',                  dot: T.danger },
     due:     { bg: '#E7F4FA', fg: '#1E7FB3',   label: 'Heute gießen',                dot: '#1E7FB3' },
     soon:    { bg: '#FFF4E3', fg: '#B57317',   label: `In ${days} Tag${days===1?'':'en'}`, dot: '#D89538' },
-    ok:      { bg: T.greenLight, fg: T.greenDark, label: `In ${days} Tagen`,         dot: T.green },
+    ok:      { bg: T.greenLight, fg: T.greenDark, label: days <= 1 ? 'Morgen' : `In ${days} Tagen`, dot: T.green },
   }[status] || {}
 
   return (

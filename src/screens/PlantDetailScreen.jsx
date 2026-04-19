@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { T, Icon, PlantImg } from '../tokens.jsx'
 import { WaterStatus } from '../components/WaterStatus.jsx'
 import { PrimaryBtn } from '../components/Buttons.jsx'
@@ -16,7 +16,7 @@ function addDays(isoDate, days) {
   return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long' })
 }
 
-export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemove, onClose }) {
+export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemove, onClose, onAddNote, onRemoveNote }) {
   const [editing, setEditing] = useState(false)
   const [editData, setEditData] = useState({
     name: plant.name,
@@ -27,6 +27,8 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
     reminderTime: plant.reminderTime,
   })
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [noteText, setNoteText] = useState('')
+  const noteInputRef = useRef(null)
 
   const { status, waterIn, lastWatered } = getStatus(plant)
 
@@ -245,6 +247,71 @@ export function PlantDetailScreen({ plant, getStatus, onWater, onUpdate, onRemov
               <Icon name="droplet" size={20} color={status === 'overdue' || status === 'due' ? '#fff' : T.green} strokeWidth={2} />
               Jetzt gießen
             </button>
+          </div>
+        )}
+
+        {/* Journal / health notes */}
+        {!editing && (
+          <div style={{ margin: '0 20px 16px', padding: 16, borderRadius: 20, background: '#fff', border: `0.5px solid ${T.line}` }}>
+            <div style={{ fontSize: 11, color: T.ink3, fontWeight: 600, letterSpacing: 0.3, marginBottom: 12 }}>
+              PFLEGETAGEBUCH
+            </div>
+            {(plant.notes || []).length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                {[...(plant.notes || [])].reverse().map(note => (
+                  <div key={note.id} style={{
+                    background: T.bg, borderRadius: 12, padding: '10px 12px',
+                    display: 'flex', gap: 10, alignItems: 'flex-start',
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 11, color: T.ink3, marginBottom: 3 }}>
+                        {germanDate(note.date)}
+                      </div>
+                      <div style={{ fontSize: 13, color: T.ink, lineHeight: 1.4 }}>{note.text}</div>
+                    </div>
+                    <button
+                      onClick={() => onRemoveNote?.(plant.id, note.id)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, flexShrink: 0 }}>
+                      <Icon name="close" size={14} color={T.ink3} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                ref={noteInputRef}
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && noteText.trim()) {
+                    onAddNote?.(plant.id, noteText.trim())
+                    setNoteText('')
+                  }
+                }}
+                placeholder="Beobachtung hinzufügen…"
+                style={{
+                  flex: 1, padding: '10px 12px', borderRadius: 10,
+                  background: T.bg, border: `1px solid ${T.line}`,
+                  fontSize: 13, color: T.ink, fontFamily: 'inherit', outline: 'none',
+                }}
+              />
+              <button
+                onClick={() => {
+                  if (!noteText.trim()) return
+                  onAddNote?.(plant.id, noteText.trim())
+                  setNoteText('')
+                }}
+                disabled={!noteText.trim()}
+                style={{
+                  width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                  background: noteText.trim() ? T.green : T.line,
+                  border: 'none', cursor: noteText.trim() ? 'pointer' : 'default',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                <Icon name="arrowRight" size={18} color="#fff" strokeWidth={2.2} />
+              </button>
+            </div>
           </div>
         )}
 
