@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { SEED_PLANTS, PLANT_HUES } from '../data.js'
 
 const PLANTS_KEY = 'plantcare_plants'
@@ -11,7 +11,7 @@ function loadPlants() {
   } catch {}
   // Seed with demo data and set watered dates to create realistic statuses
   const now = new Date()
-  const seeded = SEED_PLANTS.map((p, i) => ({ ...p }))
+  const seeded = SEED_PLANTS.map((p) => ({ ...p }))
   localStorage.setItem(PLANTS_KEY, JSON.stringify(seeded))
 
   // Seed watered map: give each plant a last-watered date to create varied statuses
@@ -52,6 +52,10 @@ export function usePlants() {
   const [plants, setPlants] = useState(() => loadPlants())
   const [wateredMap, setWateredMap] = useState(() => loadWateredMap())
 
+  // Persist whenever state changes (replaces inline save calls in each callback)
+  useEffect(() => { savePlants(plants) }, [plants])
+  useEffect(() => { saveWateredMap(wateredMap) }, [wateredMap])
+
   const getStatus = useCallback((plant) => {
     const last = wateredMap[plant.id]
     const ds = daysSince(last)
@@ -64,8 +68,8 @@ export function usePlants() {
     return { daysSince: ds, waterIn, status, lastWatered: last }
   }, [wateredMap])
 
+  // Functional updaters — no stale closures over plants/wateredMap
   const addPlant = useCallback((data) => {
-    const hue = PLANT_HUES[plants.length % PLANT_HUES.length]
     const plant = {
       id: crypto.randomUUID(),
       name: data.name,
@@ -75,36 +79,36 @@ export function usePlants() {
       frequency: data.frequency || 7,
       reminderTime: data.reminderTime || '08:00',
       letter: (data.name[0] || '?').toUpperCase(),
-      hue,
+      hue: 0, // computed below via functional updater
       createdAt: new Date().toISOString(),
     }
-    const next = [...plants, plant]
-    setPlants(next)
-    savePlants(next)
-
-    // Mark as watered today so it shows 'ok' initially
-    const nextMap = { ...wateredMap, [plant.id]: new Date().toISOString() }
-    setWateredMap(nextMap)
-    saveWateredMap(nextMap)
-
+    setPlants(prev => {
+      const hue = PLANT_HUES[prev.length % PLANT_HUES.length]
+      return [...prev, { ...plant, hue }]
+    })
+    setWateredMap(prev => ({ ...prev, [plant.id]: new Date().toISOString() }))
     return plant
-  }, [plants, wateredMap])
+  }, [])
 
   const removePlant = useCallback((id) => {
-    const next = plants.filter(p => p.id !== id)
-    setPlants(next)
-    savePlants(next)
-    const nextMap = { ...wateredMap }
-    delete nextMap[id]
-    setWateredMap(nextMap)
-    saveWateredMap(nextMap)
-  }, [plants, wateredMap])
+    setPlants(prev => prev.filter(p => p.id !== id))
+    setWateredMap(prev => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+  }, [])
 
   const waterPlant = useCallback((id) => {
-    const nextMap = { ...wateredMap, [id]: new Date().toISOString() }
-    setWateredMap(nextMap)
-    saveWateredMap(nextMap)
-  }, [wateredMap])
+    setWateredMap(prev => ({ ...prev, [id]: new Date().toISOString() }))
+  }, [])
 
-  return { plants, wateredMap, addPlant, removePlant, waterPlant, getStatus }
+  const updatePlant = useCallback((id, changes) => {
+    setPlants(prev => prev.map(p => p.id === id
+      ? { ...p, ...changes, letter: ((changes.name ?? p.name)[0] || '?').toUpperCase() }
+      : p
+    ))
+  }, [])
+
+  return { plants, wateredMap, addPlant, removePlant, waterPlant, updatePlant, getStatus }
 }
