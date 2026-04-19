@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { usePlants } from './hooks/usePlants.js'
+import { useNotifications } from './hooks/useNotifications.js'
 import { TabBar } from './components/TabBar.jsx'
 import { HomeScreen } from './screens/HomeScreen.jsx'
 import { CalendarScreen } from './screens/CalendarScreen.jsx'
@@ -14,6 +15,8 @@ export default function App() {
   const [showAdd, setShowAdd] = useState(false)
   const [addInitialSpecies, setAddInitialSpecies] = useState(null)
   const [selectedPlant, setSelectedPlant] = useState(null)
+  const [dismissedBanner, setDismissedBanner] = useState(false)
+  const { permission, requestPermission } = useNotifications(plants, getStatus)
 
   const handleTabChange = (id) => {
     if (id === 'add') {
@@ -93,6 +96,41 @@ export default function App() {
           onRemove={removePlant}
           onClose={() => setSelectedPlant(null)}
         />
+      )}
+
+      {/* Notification permission banner */}
+      {permission === 'default' && !dismissedBanner && (
+        <div style={{
+          position: 'absolute', bottom: 80, left: 16, right: 16, zIndex: 100,
+          background: T.green, borderRadius: 18, padding: '14px 16px',
+          display: 'flex', alignItems: 'center', gap: 12,
+          boxShadow: `0 4px 20px ${T.green}55`,
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 2 }}>
+              Erinnerungen aktivieren?
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)' }}>
+              Wir erinnern dich, wenn deine Pflanzen Wasser brauchen.
+            </div>
+          </div>
+          <button
+            onClick={async () => { await requestPermission(); setDismissedBanner(true) }}
+            style={{
+              padding: '8px 14px', borderRadius: 10,
+              background: '#fff', color: T.green,
+              border: 'none', fontSize: 13, fontWeight: 700,
+              cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
+            }}>Ja</button>
+          <button
+            onClick={() => setDismissedBanner(true)}
+            style={{
+              padding: '8px 10px', borderRadius: 10,
+              background: 'rgba(255,255,255,0.2)', color: '#fff',
+              border: 'none', fontSize: 13, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
+            }}>Später</button>
+        </div>
       )}
     </div>
   )
