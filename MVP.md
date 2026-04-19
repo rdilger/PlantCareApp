@@ -1,46 +1,48 @@
-MVP Feature Set
-Version 0.1 - Core Plant Management
-Must Have Features
-Plant Profile Management
-Add new plants with basic information (name, type, location in home)
-View list of all plants
-Edit plant details
-Delete plants
-Optional: Add photo of each plant
-Watering Management
-Set watering schedule per plant (e.g., every 3 days, weekly, etc.)
-Manual log when plant was watered
-View watering history per plant
-Get reminders for upcoming watering needs
-Reminder System
-Email notifications for watering schedules
-View upcoming care tasks in app
-Mark tasks as complete
-Nice to Have (if time permits)
-Simple health notes per plant (text field for observations)
-Dashboard view showing all plants needing attention today
-Explicitly Out of Scope for MVP
-Fertilizing tracking
-Soil condition tracking
-Calendar integration
-Care delegation/sharing features
-Push notifications (email only for MVP)
-Advanced health tracking with photos/measurements
-Historical trend analysis
-Success Criteria
-Can manage at least 5-10 plants effectively
-Watering reminders work reliably
-Easy to log care activities
-Usable on mobile device
-Setup takes less than 5 minutes
-Technical Constraints
-Free tier of chosen platform (Glide)
-Mobile-responsive design
-Minimal external dependencies
-Timeline
-Learning phase: 1-2 weeks
-MVP development: 2-3 weeks
-Testing with real plants: Ongoing
-This is a living document and will be updated as the MVP evolves.
+# MVP Feature Set
 
+> This document tracks what was originally planned vs. what shipped.
 
+## Shipped in v0.1
+
+### Plant management
+- Add, edit, delete plants (name, species, room, light, frequency, reminder time)
+- Color-coded plant avatars with letter initials
+
+### Watering
+- Per-plant watering schedule (2–21 day interval)
+- Full watering history (array of timestamps per plant)
+- Status: Overdue / Due today / Soon (≤ 2 days) / OK
+- Log watering from home screen, calendar, or plant detail
+
+### Care journal
+- Timestamped health notes per plant
+- Add via text input + Enter or button; delete individually
+
+### Calendar
+- Monthly calendar view with task dots
+- Day selection shows task list with water checkmarks
+- Upcoming 14-day preview strip
+
+### Discover
+- 9 plant species with difficulty, light, and category tags
+- Search + category filter + favorites (persisted to localStorage)
+- Add from Discover pre-fills plant name
+
+### Notifications
+- Browser Notification API at configured reminder time
+- 60s interval check; fires once per plant per day when due/overdue
+- Permission banner on first launch
+
+### Localization
+- German (default for de-* locales) and English
+- Auto-detected from `navigator.language`, manual override in Profile
+- Language switcher in Profile tab
+
+## Originally out of scope — still out of scope
+- Fertilizing tracking
+- Soil condition tracking
+- Calendar export / third-party calendar integration
+- Care delegation / multi-user
+- Advanced health tracking with photos or measurements
+- Historical trend analysis / charts
+- Backend / cloud sync
