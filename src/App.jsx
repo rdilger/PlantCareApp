@@ -5,13 +5,15 @@ import { HomeScreen } from './screens/HomeScreen.jsx'
 import { CalendarScreen } from './screens/CalendarScreen.jsx'
 import { DiscoverScreen } from './screens/DiscoverScreen.jsx'
 import { AddPlantFlow } from './screens/AddPlantFlow.jsx'
+import { PlantDetailScreen } from './screens/PlantDetailScreen.jsx'
 import { T } from './tokens.jsx'
 
 export default function App() {
-  const { plants, wateredMap, addPlant, removePlant, waterPlant, getStatus } = usePlants()
+  const { plants, wateredMap, addPlant, removePlant, waterPlant, updatePlant, getStatus } = usePlants()
   const [activeTab, setActiveTab] = useState('home')
   const [showAdd, setShowAdd] = useState(false)
   const [addInitialSpecies, setAddInitialSpecies] = useState(null)
+  const [selectedPlant, setSelectedPlant] = useState(null)
 
   const handleTabChange = (id) => {
     if (id === 'add') {
@@ -48,7 +50,7 @@ export default function App() {
             getStatus={getStatus}
             onWater={waterPlant}
             onAddPlant={() => { setAddInitialSpecies(null); setShowAdd(true) }}
-            onOpenPlant={() => {}}
+            onOpenPlant={(plant) => setSelectedPlant(plant)}
           />
         )}
         {activeTab === 'calendar' && (
@@ -78,6 +80,18 @@ export default function App() {
           initialSpecies={addInitialSpecies}
           onComplete={handleAddComplete}
           onCancel={() => setShowAdd(false)}
+        />
+      )}
+
+      {/* Plant detail overlay */}
+      {selectedPlant && (
+        <PlantDetailScreen
+          plant={plants.find(p => p.id === selectedPlant.id) ?? selectedPlant}
+          getStatus={getStatus}
+          onWater={waterPlant}
+          onUpdate={updatePlant}
+          onRemove={removePlant}
+          onClose={() => setSelectedPlant(null)}
         />
       )}
     </div>
